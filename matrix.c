@@ -7,7 +7,7 @@
 /*======== struct matrix * make_bezier() ==========
   Inputs:   
   Returns: The correct 4x4 matrix that can be used 
-  to generate the coefiecients for a bezier curve
+  to generate the coefficients for a bezier curve
   ====================*/
 struct matrix * make_bezier() {
     return NULL;
@@ -18,7 +18,7 @@ struct matrix * make_bezier() {
   Returns: 
 
   The correct 4x4 matrix that can be used to generate
-  the coefiecients for a hermite curve
+  the coefficients for a hermite curve
   ====================*/
 struct matrix * make_hermite() {
   return NULL;
