@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "ml6.h"
 #include "display.h"
@@ -16,13 +17,18 @@
 
   Adds the circle at (cx, cy) with radius r to points
   ====================*/
-void add_circle( struct matrix * points,
-                 double cx, double cy, double cz,
-                 double r, double step ) {
+void add_circle(struct matrix * points,
+                double cx, double cy, double cz,
+                double r, double step ) {
 	double t, x, y;
-	for (t = 0; t <= 1; t += step) {
-		x = r * cos(2 * M_PI * t) + cx;
-		y = r * sin(2 * M_PI * t) + cy;
+	x = r * cos(0) + cx;
+	y = r * sin(0) + cy;
+	for (t = 0; t < 1 + step; t += step) {
+		double new_x = r * cos(2 * M_PI * t) + cx;
+		double new_y = r * sin(2 * M_PI * t) + cy;
+		add_edge(points, x, y, cz, new_x, new_y, cz);
+		x = new_x;
+		y = new_y;
 	}	
 }
 
@@ -44,12 +50,31 @@ Adds the curve bounded by the 4 points passsed as parameters
 of type specified in type (see matrix.h for curve type constants)
 to the matrix points
 ====================*/
-void add_curve( struct matrix *points, 
-                double x0, double y0, 
-                double x1, double y1, 
-                double x2, double y2, 
-                double x3, double y3, 
-                double step, int type ) {
+void add_curve(struct matrix *points, 
+               double x0, double y0, 
+               double x1, double y1, 
+               double x2, double y2, 
+               double x3, double y3, 
+               double step, int type) {
+	double t, x, y;
+	struct matrix *x_coefs, *y_coefs;
+	x_coefs = generate_curve_coefs(x0, x1, x2, x3, type);
+	y_coefs = generate_curve_coefs(y0, y1, y2, y3, type);
+	x = x0;
+	y = y0;
+	for (t = 0; t < 1 + step; t += step) {
+		double new_x = x_coefs->m[0][0] * pow(t, 3) + 
+		               x_coefs->m[1][0] * pow(t, 2) + 
+		               x_coefs->m[2][0] * t + 
+		               x_coefs->m[3][0];
+		double new_y = y_coefs->m[0][0] * pow(t, 3) + 
+		               y_coefs->m[1][0] * pow(t, 2) + 
+		               y_coefs->m[2][0] * t + 
+		               y_coefs->m[3][0];
+		add_edge(points, x, y, 0, new_x, new_y, 0);
+		x = new_x;
+		y = new_y;
+	}
 }
 
 

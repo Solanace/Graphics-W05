@@ -9,8 +9,25 @@
   Returns: The correct 4x4 matrix that can be used 
   to generate the coefficients for a bezier curve
   ====================*/
-struct matrix * make_bezier() {
-    return NULL;
+struct matrix *make_bezier() {
+	struct matrix *bezier = new_matrix(4, 4);
+	ident(bezier);
+	bezier->lastcol = 4;
+
+	bezier->m[0][0] = -1;
+	bezier->m[0][1] =  3;
+	bezier->m[0][2] = -3;
+	bezier->m[0][3] =  1;
+	bezier->m[1][0] =  3;
+	bezier->m[1][1] = -6;
+	bezier->m[1][2] =  3;
+	bezier->m[2][0] = -3;
+	bezier->m[2][1] =  3;
+	bezier->m[2][2] =  0;
+	bezier->m[3][0] =  1;
+	bezier->m[3][3] =  0;
+
+	return bezier;
 }
 
 /*======== struct matrix * make_hermite() ==========
@@ -20,8 +37,24 @@ struct matrix * make_bezier() {
   The correct 4x4 matrix that can be used to generate
   the coefficients for a hermite curve
   ====================*/
-struct matrix * make_hermite() {
-  return NULL;
+struct matrix *make_hermite() {
+	struct matrix *hermite = new_matrix(4, 4);
+	ident(hermite);
+	hermite->lastcol = 4;
+
+	hermite->m[0][0] =  2;
+	hermite->m[0][1] = -2;
+	hermite->m[0][2] =  1;
+	hermite->m[0][3] =  1;
+	hermite->m[1][0] = -3;
+	hermite->m[1][1] =  3;
+	hermite->m[1][2] = -2;
+	hermite->m[1][3] = -1;
+	hermite->m[2][2] =  1;
+	hermite->m[3][0] =  1;
+	hermite->m[3][3] = 0;
+
+	return hermite;
 }
 
 /*======== struct matrix * generate_curve_coefs() ==========
@@ -38,9 +71,27 @@ struct matrix * make_hermite() {
   
   Type determines whether the curve is bezier or hermite
   ====================*/
-struct matrix * generate_curve_coefs( double p1, double p2, 
+struct matrix *generate_curve_coefs(double p1, double p2, 
 				      double p3, double p4, int type) {
-  return NULL;
+	struct matrix *coefs = new_matrix(4, 1);
+	struct matrix *temp;
+	coefs->lastcol = 1;
+
+	coefs->m[0][0] = p1;
+	coefs->m[1][0] = p2;
+	coefs->m[2][0] = p3;
+	coefs->m[3][0] = p4;
+  
+	if (type == HERMITE) {
+		temp = make_hermite();
+		matrix_mult(temp, coefs);
+	}
+	else if (type == BEZIER) {
+		temp = make_bezier();
+		matrix_mult(temp, coefs);
+	}
+	free_matrix(temp);
+	return coefs;
 }
 
 
@@ -139,14 +190,50 @@ Returns:
 print the matrix
 */
 void print_matrix(struct matrix *m) {
-
-  int r, c;
-  for (r=0; r < m->rows; r++) {
-    for (c=0; c < m->lastcol; c++) 
-      printf("%0.2f ", m->m[r][c]);
-    printf("\n");
-  }
-}//end print_matrix
+	int r, c;
+	int count[m->cols]; // For each column, count stores the number of chars the biggest number takes
+	for (c = 0; c < m->lastcol; c ++) {
+		count[c] = 0;
+		int tempA; // copy of each element in the matrix
+		for (r = 0; r < m->rows; r ++) {
+			int tempB = 0;
+			tempA = m->m[r][c];
+			if (tempA < 0) tempB ++;
+			if (tempA == 0) tempB = 1;
+			while (tempA != 0) {
+				tempA = tempA / 10;
+				tempB ++;
+			}
+			if (tempB > count[c]) count[c] = tempB;
+		}
+	}
+	for (r = 0; r < m->rows; r ++) {
+		printf("[");
+		for (c = 0; c < m->lastcol; c ++) {
+			int ele_count = 0;
+			int temp = m->m[r][c];
+			//printf("ele_count of %d: ", temp);
+			if (temp < 0) ele_count ++;
+			if (temp != 0) {
+				while (temp != 0) {
+					temp = temp / 10;
+					ele_count ++;
+				}
+			}
+			else ele_count = 1;
+			//printf("%d\n", ele_count);
+			while (count[c] > ele_count) {
+				printf(" ");
+				ele_count ++;
+			}
+			printf("%0.2f", m->m[r][c]);
+			if (c < m->lastcol - 1) {
+				printf("  ");
+			}
+		}
+		printf("]\n");
+	}
+}
 
 /*-------------- void ident() --------------
 Inputs:  struct matrix *m <-- assumes m is a square matrix
